@@ -20,6 +20,14 @@ const GuildSchema = new mongoose.Schema({
   leader: {
     type: JSON,
     required: true
+  },
+  buildings: {
+    type: JSON,
+    required: false
+  },
+  professions: {
+    type: JSON,
+    required: false
   }
 })
 

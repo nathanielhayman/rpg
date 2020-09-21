@@ -19,6 +19,10 @@ module.exports.run = async (bot, message, args, color) => {
         user.name = message.author.username
     }
 
+    console.log(user.userId)
+    console.log(user.skills)
+    console.log(user.skills.strength)
+
     var names = []
 
     bot.guilds.cache.forEach(guild => {
@@ -41,7 +45,11 @@ module.exports.run = async (bot, message, args, color) => {
             .setDescription(`Click [here](http://example.com) to see a detailed profile of this user.`)
             .addFields(
                 { name: 'General Info', value: `\`\`\`ini\n✓ Guild(s): [${names.join(', ')}]\n✓ Bank Balance: [$${user.balanceBank}]\n✓ Items Owned: [0]\`\`\``, inline: false },
-                { name: 'Skills', value: `\`\`\`ini\n🦾 Strength: ${formattedStrength} (${user.skills.strength}/50)\n\n👟 Agility: ${formattedAgility} (${user.skills.agility}/50)\n\n🔊 Speech: ${formattedSpeech} (${user.skills.speech}/50)\n\`\`\``, inline: false },
+                { name: 'Skills', value: `\`\`\`ini\n🦾 Strength: ${formattedStrength} (${user.skills.strength}/50)\n
+👟 Agility: ${formattedAgility} (${user.skills.agility}/50)\n
+🔊 Speech: ${formattedSpeech} (${user.skills.speech}/50)\n
+🛠 Profession: ░░░░░░░░░░░░░░░░░░░░░░░░░ (0/50)\n
+🔮 Magic: ░░░░░░░░░░░░░░░░░░░░░░░░░ (0/50)\n\`\`\``, inline: false },
                 { name: 'Awards', value: `\`\`\`ini\n# There are no awards to display yet!\`\`\``, inline: true },
                 { name: 'Allegiance', value: `\`\`\` ${message.guild.name}\`\`\``, inline: true },
                 { name: '\u200B', value: '[Documentation](http://example.com) | [Leaderboard](http://example.com) | [Player Dashboard](http://example.com)', inline: false }

@@ -1,0 +1,73 @@
+{
+    "forest-ent": {
+
+        "instant-action": null,
+        "awa": false,
+        "association": "none",
+        "race": "ent",
+
+        "1": {"defense": 1000, "attack": "50", "loot": {
+            "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 50, "amount": [50, 100]}, 
+            "ent-skull": {"chance": 0.5, "amount": [1, 1]},
+            "ent-vine": {"chance": 10, "amount": [1, 10]}}
+        },
+
+        "2": {"defense": 1500, "attack": "100", "loot": {
+            "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 60, "amount": [75, 100]}, 
+            "ent-skull": {"chance": 1, "amount": [1, 1]},
+            "ent-vine": {"chance": 15, "amount": [1, 10]}}
+        },
+
+        "3": {"defense": 2000, "attack": "150", "loot": {
+            "blessed-flower": {"chance": 0.2, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 75, "amount": [100, 150]}, 
+            "ent-skull": {"chance": 2, "amount": [1, 1]},
+            "ent-vine": {"chance": 20, "amount": [1, 10]}}
+        },
+
+        "4": {"defense": 3000, "attack": "200", "loot": {
+            "blessed-flower": {"chance": 0.5, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 80, "amount": [100, 150]}, 
+            "ent-skull": {"chance": 2, "amount": [1, 1]},
+            "ent-vine": {"chance": 30, "amount": [1, 15]}}
+        },
+
+        "5": {"defense": 5000, "attack": "300", "loot": {
+            "blessed-flower": {"chance": 1, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 100, "amount": [150, 250]}, 
+            "ent-skull": {"chance": 5, "amount": [1, 1]},
+            "ent-vine": {"chance": 45, "amount": [1, 20]}}
+        }
+    },
+
+    "theif": {
+
+        "instant-action": "steal",
+        "awa": true,
+        "association": "none",
+        "race": null,
+
+        "1": {"defense": 25, "attack": "2", "loot": {
+            "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 50, "amount": [50, 100]}, 
+            "ent-skull": {"chance": 0.5, "amount": [1, 1]},
+            "ent-vine": {"chance": 10, "amount": [1, 10]}}
+        },
+
+        "2": {"defense": 30, "attack": "3", "loot": {
+            "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 60, "amount": [75, 100]}, 
+            "ent-skull": {"chance": 1, "amount": [1, 1]},
+            "ent-vine": {"chance": 15, "amount": [1, 10]}}
+        },
+
+        "3": {"defense": 40, "attack": "5", "loot": {
+            "blessed-flower": {"chance": 0.2, "amount": [1, 1]}, 
+            "rsce-wood": {"chance": 75, "amount": [100, 150]}, 
+            "ent-skull": {"chance": 2, "amount": [1, 1]},
+            "ent-vine": {"chance": 20, "amount": [1, 10]}}
+        }
+    }
+}

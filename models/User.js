@@ -14,7 +14,15 @@ const UserSchema = new mongoose.Schema({
   skills: {
     type: JSON,
     required: false,
-    default: {strength: 0, agility: 0, speech: 0}
+    default: {strength: 0, agility: 0, speech: 0, profession: 0, magic: 0}
+  },
+  profession: {
+    type: JSON,
+    required: false
+  },
+  magic: {
+    type: JSON,
+    required: false
   },
   items: {
     type: JSON,
@@ -50,6 +58,10 @@ const UserSchema = new mongoose.Schema({
   },
   alliance: {
     type: String,
+    required: false
+  },
+  travel: {
+    type: JSON,
     required: false
   }
 })

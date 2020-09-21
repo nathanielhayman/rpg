@@ -54,10 +54,8 @@ async function dailyReport() {
     timeout = setTimeout(dailyReport, 3600000)
 }
 
-const servers = {};
 var users = []
 var guilds = []
-let mods = {};
 
 bot.on('ready', async () => {
 
@@ -78,7 +76,10 @@ bot.on('ready', async () => {
         users.push(user.userId)
     })
 
+    var guild_users = []
+
     bot.guilds.cache.forEach(async guild => {
+
         if (!guilds.includes(guild.id)) {
 
             var leader = JSON
@@ -87,11 +88,13 @@ bot.on('ready', async () => {
 
             await Guild.create({ guildId: guild.id, prefix: '$', leader: leader })
             guilds.push(guild.id)
-        }
+        }   
 
         guild.members.cache.forEach(async member => {
-            if (!users.includes(member.id)) {
+
+            if (!users.includes(member.id) && !guild_users.includes(member.id)) {
                 await User.create({ userId: member.id })
+                guild_users.push(toString(member.id))
             }
         })
     })
