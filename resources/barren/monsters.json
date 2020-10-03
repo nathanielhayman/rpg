@@ -6,6 +6,8 @@
         "association": "none",
         "race": "ent",
 
+        "message": "You see a massive ent trudging through the trees. He seems to take no notice of you.",
+
         "1": {"defense": 1000, "attack": "50", "loot": {
             "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
             "rsce-wood": {"chance": 50, "amount": [50, 100]}, 
@@ -48,6 +50,8 @@
         "awa": true,
         "association": "none",
         "race": null,
+
+        "message": "You spot a slinking theif from around a tree.",
 
         "1": {"defense": 25, "attack": "2", "loot": {
             "blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 

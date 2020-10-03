@@ -63,6 +63,23 @@ const UserSchema = new mongoose.Schema({
   travel: {
     type: JSON,
     required: false
+  },
+  fight: {
+    type: JSON,
+    required: false
+  },
+  pendants: {
+    type: JSON,
+    required: false
+  },
+  health: {
+    type: Number,
+    required: false,
+    default: 100
+  },
+  equippedWeapon: {
+    type: JSON,
+    required: false
   }
 })
 

@@ -27,7 +27,6 @@ module.exports.run = async (bot, message, args, color) => {
         await message.channel.send(embed)
     } else if (user.occupied && user.travel) {
         embed.setDescription(`You are currently traveling to \`${user.travel.travelingTo}\`. This will take another ${Number.parseFloat((user.travel.arrive - Date.now()) / 60000).toFixed(2)} minutes`)
-        embed.setImage('https://i.pinimg.com/originals/4e/7e/8f/4e7e8f8d5e5243683147ec1e8a19b992.png')
         await message.channel.send(embed)
     } else {
         if (!user.occupied) {

@@ -3,9 +3,11 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const { Server } = require('http');
 const connectDB = require('./config/db')
-const Guild = require('./models/Guild')
 const botconfig = require('./botconfig.json');
+
+const Guild = require('./models/Guild')
 const User = require('./models/User');
+const Monster = require('./models/Monster')
 
 console.log('[^] Collecting assets...')
 
@@ -177,6 +179,137 @@ bot.on('message', async message => {
         }
     }
 
+});
+
+const events = {
+    MESSAGE_REACTION_ADD: 'messageReactionAdd',
+    MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
+};
+
+bot.on('raw', async event => {
+    if (!events.hasOwnProperty(event.t)) return;
+
+    const { d: data } = event;
+    const ruser = bot.users.cache.get(data.user_id);
+    const channel = bot.channels.cache.get(data.channel_id);
+
+    const message = await channel.messages.fetch(data.message_id);
+
+    const emoji = data.emoji
+
+    var embed = new Discord.MessageEmbed()
+        .setColor(botconfig.color)
+        
+    var ogembed = embed
+
+    if (event.t === "MESSAGE_REACTION_ADD" && !ruser.bot && message.author.bot) {
+
+        embed = message.embeds[0]
+
+        embed.fields.forEach(field => {
+            if (field.name === 'Player') {
+                playerID = field.value.substring(2).slice(0, -1)
+            }
+        })
+
+        if (playerID === ruser.id) {
+
+            const user = await User.findOne({ userId: ruser.id })
+
+                embed.fields = []
+
+                if (!user.fight) {
+                
+                    const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(ruser.id));
+                
+                    if (emoji.name === '⚔️' && ruser) {
+                    
+                        const monster = await Monster.findOne({ target: ruser.id })
+                        var critChance = 5
+                        var criticalHit = ''
+                    
+                        if (monster) {
+                        
+                            if (!monster.tags.immune) {
+                            
+                                if (user.equippedWeapon) {
+                                
+                                    if (user.pendants) {
+                                    
+                                        user.pendants.forEach(pendant => {
+                                        
+                                            if (pendant.critical) {
+                                                critChance += pendant.critical
+                                            }
+                                        
+                                        })
+                                    }
+                                
+                                    if (Math.floor(Math.random() * 101) <= critChance) {
+                                        var newHealth = monster.health - (user.equippedWeapon.damage * 2.5)
+                                    
+                                        criticalHit = '**Critical Hit!**'
+                                    
+                                    } else {
+                                        var newHealth = monster.health - user.equippedWeapon.damage
+                                    }
+                                
+                                    embed.addFields(
+                                        { name: `Options`, value: `\`\`\`ini\n⚔️ Attack\n🛡️ Assume a defensive position\n🔮 Use a spell [requires MAGIC]\n💬 Speak\n🏃‍♂️ Attempt to flee\`\`\``, inline: false },
+                                        { name: `${monster.type}'s Health`, value: `\`\`\`${newHealth}\`\`\``, inline: true },
+                                        { name: `Your Health`, value: `\`\`\`${user.health}\`\`\``, inline: true },
+                                        { name: `Your Weapon`, value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true },
+                                        { name: `Player`, value: `${ruser}`, inline: true }
+                                    )
+                                    
+                                    if (newHealth === 0 || newHealth < 0 ) {
+                                    
+                                        await embed.addFields(
+                                            { name: `Updates`, value: `${criticalHit} **The ${monster.type} is defeated!**`, inline: true }
+                                        )
+                                        
+                                        await message.edit(embed)
+                                        await Monster.remove({ target: ruser.id })
+                                        try { await message.delete({ timeout: 5000 }) } catch (e) {}
+                                        
+                                    } else {
+                                    
+                                        await embed.addFields(
+                                            { name: `Updates`, value: `${criticalHit} You dealt massive damage!`, inline: true }
+                                        )
+                                        
+                                        await message.edit(embed)
+                                        await Monster.findOneAndUpdate({ target: ruser.id }, { health: newHealth })
+                                        
+                                    }
+                                
+                                } else {
+                                    ogembed.setTitle('New Encounter')
+                                    ogembed.setDescription('You do not have a weapon equipped!')
+                                    await message.edit(ogembed)
+                                }
+                            } else {
+                                ogembed.setTitle('New Encounter')
+                                ogembed.setDescription('The creature is immune to your attacks!')
+                                await message.edit(ogembed)
+                            }
+                        }
+                    } else if (emoji.name === '🛡️') {
+                    }
+                    for (const reaction of userReactions.values()) {
+                        await reaction.users.remove(ruser.id);
+                    }
+                }
+            } else {
+                ogembed.setDescription('You are not the player who this message was made for!')
+                await message.edit(ogembed)
+            }
+
+        }
+
+    else if (event.t === "MESSAGE_REACTION_REMOVE") {
+
+    }
 });
 
 bot.login(botconfig.token);
