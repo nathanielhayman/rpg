@@ -7,7 +7,8 @@ const botconfig = require('./botconfig.json');
 
 const Guild = require('./models/Guild')
 const User = require('./models/User');
-const Monster = require('./models/Monster')
+const Monster = require('./models/Monster');
+const { brotliCompress } = require('zlib');
 
 console.log('[^] Collecting assets...')
 
@@ -204,6 +205,18 @@ bot.on('raw', async event => {
 
     if (event.t === "MESSAGE_REACTION_ADD" && !ruser.bot && message.author.bot) {
 
+        var paused = false
+
+        message.reactions.cache.forEach(reaction => {
+            if (reaction._emoji.name === '🚫') {
+                reaction.users.cache.forEach(user => {
+                    if (user.id === bot.user.id) {
+                        paused = true
+                    }
+                })
+            }
+        })
+
         embed = message.embeds[0]
 
         embed.fields.forEach(field => {
@@ -214,13 +227,15 @@ bot.on('raw', async event => {
 
         if (playerID === ruser.id) {
 
-            const user = await User.findOne({ userId: ruser.id })
+            const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(ruser.id));
+
+            if (!paused) {
+
+                const user = await User.findOne({ userId: ruser.id })
 
                 embed.fields = []
 
                 if (!user.fight) {
-                
-                    const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(ruser.id));
                 
                     if (emoji.name === '⚔️' && ruser) {
                     
@@ -255,7 +270,7 @@ bot.on('raw', async event => {
                                     }
                                 
                                     embed.addFields(
-                                        { name: `Options`, value: `\`\`\`ini\n⚔️ Attack\n🛡️ Assume a defensive position\n🔮 Use a spell [requires MAGIC]\n💬 Speak\n🏃‍♂️ Attempt to flee\`\`\``, inline: false },
+                                        { name: `Options`, value: `\`\`\`ini\n⚔️ Attack!\n🛡️ Assume a defensive position\n🔮 Use a spell [requires MAGIC]\n💬 Speak\n🏃‍♂️ Attempt to flee\`\`\``, inline: false },
                                         { name: `${monster.type}'s Health`, value: `\`\`\`${newHealth}\`\`\``, inline: true },
                                         { name: `Your Health`, value: `\`\`\`${user.health}\`\`\``, inline: true },
                                         { name: `Your Weapon`, value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true },
@@ -273,6 +288,8 @@ bot.on('raw', async event => {
                                         try { await message.delete({ timeout: 5000 }) } catch (e) {}
                                         
                                     } else {
+
+                                        await message.react('🚫')
                                     
                                         await embed.addFields(
                                             { name: `Updates`, value: `${criticalHit} You dealt massive damage!`, inline: true }
@@ -282,11 +299,67 @@ bot.on('raw', async event => {
                                         await Monster.findOneAndUpdate({ target: ruser.id }, { health: newHealth })
                                         
                                     }
+
+                                    setTimeout(async function() {
+
+                                        var userHealth = user.health - monster.attack
+
+                                        console.log(userHealth)
+
+                                        if (userHealth === 0 || userHealth < 0 ) {
+
+                                            await User.findOneAndUpdate({ userId: ruser.id }, { health: 0 })
+                                            await Monster.remove({ target: ruser.id })
+
+                                            embed = new Discord.MessageEmbed()
+                                                .setColor(botconfig.color)
+                                                .setTitle('Oh No!')
+                                                .setDescription(`The ${monster.type} penetrates your strongest defenses! You are dead!\n
+                                                \`\`\`React with ✅ to start over\nReact with ❌ to wake up with an EXP and wealth penalty\`\`\``)
+                                            
+                                            await message.delete()
+
+                                            var msg = await message.channel.send(embed)
+
+                                            await msg.react('✅') 
+                                            await msg.react('❌') 
+
+                                        } else {
+
+                                            await User.findOneAndUpdate({ userId: ruser.id }, { health: userHealth })
+
+                                            embed.fields.forEach(field => {
+                                                if(field.name === 'Your Health') {
+                                                    field.value = `\`\`\`${userHealth}\`\`\``
+                                                } else if (field.name === 'Updates') {
+                                                    field.value += `\nThe ${monster.type} hits you back for ${monster.attack} damage!`
+                                                }
+                                            })
+
+                                            message.reactions.cache.forEach(reaction => {
+                                                if (reaction._emoji.name === '🚫') {
+                                                    reaction.users.cache.forEach(user => {
+                                                        if (user.id === bot.user.id) {
+                                                            reaction.remove(bot.user.id)
+                                                        }
+                                                    })
+                                                }
+                                            })
+
+                                            await message.edit(embed)
+
+                                            for (const reaction of userReactions.values()) {
+                                                await reaction.users.remove(ruser.id);
+                                            }
+                                        }
+
+                                    }, 3000)
                                 
                                 } else {
                                     ogembed.setTitle('New Encounter')
                                     ogembed.setDescription('You do not have a weapon equipped!')
                                     await message.edit(ogembed)
+                                    try { await message.edit({ timeout: 5000 }) } catch (e) {}
                                 }
                             } else {
                                 ogembed.setTitle('New Encounter')
@@ -296,16 +369,20 @@ bot.on('raw', async event => {
                         }
                     } else if (emoji.name === '🛡️') {
                     }
-                    for (const reaction of userReactions.values()) {
-                        await reaction.users.remove(ruser.id);
-                    }
                 }
+
             } else {
-                ogembed.setDescription('You are not the player who this message was made for!')
-                await message.edit(ogembed)
+                for (const reaction of userReactions.values()) {
+                    await reaction.users.remove(ruser.id);
+                }
             }
 
+        } else {
+                ogembed.setDescription('You are not the player who this message was made for!')
+                await message.channel.send(ogembed)
         }
+
+    }
 
     else if (event.t === "MESSAGE_REACTION_REMOVE") {
 
