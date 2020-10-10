@@ -80,6 +80,16 @@ const UserSchema = new mongoose.Schema({
   equippedWeapon: {
     type: JSON,
     required: false
+  },
+  experience: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  points: {
+    type: Number,
+    required: false,
+    default: 0
   }
 })
 

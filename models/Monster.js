@@ -29,6 +29,10 @@ const MonsterSchema = new mongoose.Schema({
     type: JSON,
     required: false,
     default: {resistance: 0, immune: false, affiliation: null}
+  },
+  level: {
+    type: String,
+    required: false
   }
 })
 

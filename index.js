@@ -17,7 +17,6 @@ connectDB()
 const bot = new Discord.Client({disableEveryone: true})
 
 var timeout
-var prefixes = {}
 
 function millisToMinutesAndSeconds(millis) {
     var minutes = Math.floor(millis / 60000);
@@ -70,13 +69,12 @@ bot.on('ready', async () => {
     botGuilds = await Guild.find().lean()
     botUsers = await User.find().lean()
 
-    botGuilds.forEach(guild => {
-        guilds.push(guild.guildId)
-        prefixes[guild.guildId] = guild.prefix
-    })
-
     botUsers.forEach(user => {
         users.push(user.userId)
+    })
+
+    botGuilds.forEach(guild => {
+        guilds.push(guild.guildId)
     })
 
     var guild_users = []
@@ -159,7 +157,7 @@ bot.on('message', async message => {
 
     if(message.author.bot || message.channel.type === 'dm') return;
 
-    let prefix = prefixes[message.guild.id];
+    let prefix = botconfig.prefix;
     let content = message.content.split(' ');
     let color = botconfig.color
 
@@ -259,6 +257,8 @@ bot.on('raw', async event => {
                                         
                                         })
                                     }
+
+                                    critChance += Math.floor(user.skills.strength / 2)
                                 
                                     if (Math.floor(Math.random() * 101) <= critChance) {
                                         var newHealth = monster.health - (user.equippedWeapon.damage * 2.5)
@@ -278,9 +278,60 @@ bot.on('raw', async event => {
                                     )
                                     
                                     if (newHealth === 0 || newHealth < 0 ) {
+
+                                        var table = require('./resources/forest/monsters.json')
+
+                                        table = table[monster.loot].levels[monster.level.toString()].loot
+
+                                        var num = Math.floor(Math.random() * 101)
+
+                                        if (!user.items) {
+                                            user.items = {}
+                                        }
+
+                                        var rewardMessage = ''
+                                        var amount = 0
+
+                                        var xp = user.experience
+
+                                        xp += Math.floor(Math.random() * 101)
+
+                                        if (Math.floor(xp / 100) !== user.level) {
+                                            user.level = Math.floor(xp / 100)
+                                            user.points += 3
+                                            await message.channel.send(`${ruser} leveled up to level ${user.level}! You have 3 new skill points to spend!`)
+                                        }
+
+                                        rewardMessage = `\`\`\``
+
+                                        for (var key in table) {
+                                            if (table.hasOwnProperty(key)) {           
+                                                console.log(key, table[key]);
+                                                if (num < table[key].chance) {
+                                                    amount = Math.floor(Math.random() * table[key].amount[1]) + 1
+
+                                                    if (user.items[key]) {
+                                                        user.items[key].amount += amount
+                                                    } else {
+                                                        user.items[key] = {}
+                                                        user.items[key].amount = amount
+                                                    }
+                                                    rewardMessage += `${key} x${amount}\n`
+                                                }   
+                                            }
+                                        }
+
+                                        if (rewardMessage !== `\`\`\``) {
+                                            console.log(user.items)
+                                            await User.findOneAndUpdate({ userId: ruser.id }, { items: user.items, level: user.level, experience: xp, points: user.points })
+                                            rewardMessage += `${xp} experience\`\`\``
+                                        } else {
+                                            rewardMessage = `\`\`\`${xp} experience\`\`\``
+                                        }
                                     
                                         await embed.addFields(
-                                            { name: `Updates`, value: `${criticalHit} **The ${monster.type} is defeated!**`, inline: true }
+                                            { name: `Updates`, value: `${criticalHit} **The ${monster.type} is defeated!**`, inline: true },
+                                            { name: `What you recieved`, value: `${rewardMessage}`, inline: false }
                                         )
                                         
                                         await message.edit(embed)
@@ -315,14 +366,11 @@ bot.on('raw', async event => {
                                                 .setColor(botconfig.color)
                                                 .setTitle('Oh No!')
                                                 .setDescription(`The ${monster.type} penetrates your strongest defenses! You are dead!\n
-                                                \`\`\`React with ✅ to start over\nReact with ❌ to wake up with an EXP and wealth penalty\`\`\``)
+                                                \`\`\`You awake back in the guild of ${message.guild.name} with some penalties:\n \`\`\``)
                                             
                                             await message.delete()
 
                                             var msg = await message.channel.send(embed)
-
-                                            await msg.react('✅') 
-                                            await msg.react('❌') 
 
                                         } else {
 
@@ -368,6 +416,15 @@ bot.on('raw', async event => {
                             }
                         }
                     } else if (emoji.name === '🛡️') {
+                    } else if (emoji.name === '🏃‍♂️') {
+                        await Monster.remove({ target: ruser.id }) 
+                        await message.delete()
+
+                        embed = new Discord.MessageEmbed()
+                            .setColor(botconfig.color)
+                            .setDescription('You successfully run away from the encounter.')
+
+                        await message.channel.send(embed)
                     }
                 }
 

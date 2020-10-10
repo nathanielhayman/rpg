@@ -19,6 +19,11 @@ module.exports.run = async (bot, message, args, color) => {
         user.name = message.author.username
     }
 
+    if (!user.equippedWeapon) {
+        user.equippedWeapon = JSON
+        user.equippedWeapon.name = 'No Weapon Equipped'
+    }
+
     console.log(user.userId)
     console.log(user.skills)
     console.log(user.skills.strength)
@@ -52,6 +57,8 @@ module.exports.run = async (bot, message, args, color) => {
 🔮 Magic: ░░░░░░░░░░░░░░░░░░░░░░░░░ (0/50)\n\`\`\``, inline: false },
                 { name: 'Awards', value: `\`\`\`ini\n# There are no awards to display yet!\`\`\``, inline: true },
                 { name: 'Allegiance', value: `\`\`\` ${message.guild.name}\`\`\``, inline: true },
+                { name: 'Health', value: `\`\`\`${user.health} / 100\`\`\``, inline: true },
+                { name: 'Weapon', value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true },
                 { name: '\u200B', value: '[Documentation](http://example.com) | [Leaderboard](http://example.com) | [Player Dashboard](http://example.com)', inline: false }
             )
             .setFooter(`RPeG ${botconfig.version}`, bot.user.avatarURL())

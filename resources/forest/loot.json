@@ -1,0 +1,26 @@
+{
+    "forest-loot-1": {
+	
+		"name": "Ancient Chest",
+		"message": "You stumble across an ancient chest...",
+		
+		"levels": {
+			
+			"1": { "rarity": "Common", "loot": {
+				"blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+                "rsce-wood": {"chance": 50, "amount": [50, 100]}, 
+                "ent-skull": {"chance": 0.5, "amount": [1, 1]},
+                "ent-vine": {"chance": 10, "amount": [1, 10]}}
+			},
+			
+			"2": { "rarity": "Uncommon", "loot": {
+				"blessed-flower": {"chance": 0.1, "amount": [1, 1]}, 
+                "rsce-wood": {"chance": 60, "amount": [75, 100]}, 
+                "ent-skull": {"chance": 1, "amount": [1, 1]},
+                "ent-vine": {"chance": 15, "amount": [1, 10]}}
+			}
+			
+		}
+		
+	}
+}
