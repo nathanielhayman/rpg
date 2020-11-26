@@ -21,9 +21,8 @@ module.exports.run = async (bot, message, args, color) => {
                 { name: 'Education', value: `\`\`\`ini\n 🟡 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░ (52/100)\`\`\``, inline: false },
                 { name: 'Protection', value: `\`\`\`ini\n 🔴 ▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░ (27/100)\`\`\``, inline: false },
                 { name: 'Notes', value: `\`\`\`ini\nThis guild's protection level is very low! Citizens feel generally unsafe and will work less effectively as a result. This can be resolved by leveling up the guild's defenses.\`\`\``, inline: true },
-                { name: '\u200B', value: '[Documentation](http://example.com) | [Leaderboard](http://example.com) | [Player Dashboard](http://example.com)', inline: false }
             )
-            .setFooter(`RPeG ${botconfig.version}`, bot.user.avatarURL())
+            .setFooter(`${botconfig.version}`, bot.user.avatarURL())
 
     return message.channel.send(embed)
 }

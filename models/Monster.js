@@ -33,6 +33,10 @@ const MonsterSchema = new mongoose.Schema({
   level: {
     type: String,
     required: false
+  },
+  created: {
+    type: Number,
+    required: true
   }
 })
 

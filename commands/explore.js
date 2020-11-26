@@ -19,8 +19,6 @@ module.exports.run = async (bot, message, args, color) => {
     const random = Math.floor(Math.random() * 2) + 1
     const user = await User.findOne({ userId: message.author.id })
 
-    console.log(random)
-
     if (random === 1) {
 
         var keys = Object.keys(forestMonsters)
@@ -30,8 +28,10 @@ module.exports.run = async (bot, message, args, color) => {
         var level = Math.floor(keys.length * Math.random())
         var m = monster.levels[keys[level]]
         level = level + 1
+        
+        var now = Date.now()
 
-        await Monster.create({ target: message.author.id, loot: ID, health: m.defense, attack: m.attack, type: monster.type, level: level })
+        await Monster.create({ target: message.author.id, loot: ID, health: m.defense, attack: m.attack, type: monster.type, level: level, created: now })
     
         embed.setTitle(`New Encounter! (${monster.type} ~ Level ${level})`)
         embed.setDescription(`${monster.message}\n`)
@@ -43,23 +43,50 @@ module.exports.run = async (bot, message, args, color) => {
 
         if (!user.equippedWeapon) {
             embed.addFields(
-                { name: `Your Weapon`, value: `\`\`\`No Weapon\`\`\``, inline: true },
-                { name: `Player`, value: `${message.author}`, inline: true }
+                { name: `Your Weapon`, value: `\`\`\`No Weapon\`\`\``, inline: true }
             )
         } else {
             embed.addFields(
-                { name: `Your Weapon`, value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true },
-                { name: `Player`, value: `${message.author}`, inline: true }
+                { name: `Your Weapon`, value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true }
             )
         }
 
+        var critChance = 5
+
+        if (user.pendants) {
+                                    
+            user.pendants.forEach(pendant => {
+            
+                if (pendant.critical) {
+                    critChance += pendant.critical
+                }
+            
+            })
+        }
+
+        critChance += Math.floor(user.skills.strength / 2)
+
+        embed.addFields(
+            { name: `Crit`, value: `\`\`\`${critChance}%\`\`\``, inline: true },
+            { name: `Attack`, value: `\`\`\`${user.equippedWeapon.damage}\`\`\``, inline: true },
+            { name: `Player`, value: `${message.author}`, inline: true }
+        )
+
         let msg = await message.channel.send(embed)
+
+        setTimeout(async function() { 
+            try { await Monster.remove({ created: now }) } catch (e) {} 
+            if (msg){
+                await msg.delete()
+            }
+        }, 100000)
 
         await msg.react('⚔️')
         await msg.react('🛡️')
         await msg.react('🔮')
         await msg.react('💬')
         await msg.react('🏃‍♂️')
+
     } else if (random === 2) {
 
         var keys = Object.keys(forestLoot)
@@ -77,12 +104,9 @@ module.exports.run = async (bot, message, args, color) => {
         var rewardMessage = ''
         var amount = 0
 
-        console.log(`num in ${num}`)
-
         rewardMessage = ``
         for (var key in c.loot) {
-            if (c.loot.hasOwnProperty(key)) {           
-                console.log(key, c.loot[key]);
+            if (c.loot.hasOwnProperty(key)) {        
                 if (num < c.loot[key].chance) {
                     amount = Math.floor(Math.random() * c.loot[key].amount[1]) + 1
                     if (user.items[key]) {

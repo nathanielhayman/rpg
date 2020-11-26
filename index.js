@@ -203,18 +203,6 @@ bot.on('raw', async event => {
 
     if (event.t === "MESSAGE_REACTION_ADD" && !ruser.bot && message.author.bot) {
 
-        var paused = false
-
-        message.reactions.cache.forEach(reaction => {
-            if (reaction._emoji.name === '🚫') {
-                reaction.users.cache.forEach(user => {
-                    if (user.id === bot.user.id) {
-                        paused = true
-                    }
-                })
-            }
-        })
-
         embed = message.embeds[0]
 
         embed.fields.forEach(field => {
@@ -226,8 +214,6 @@ bot.on('raw', async event => {
         if (playerID === ruser.id) {
 
             const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(ruser.id));
-
-            if (!paused) {
 
                 const user = await User.findOne({ userId: ruser.id })
 
@@ -259,9 +245,14 @@ bot.on('raw', async event => {
                                     }
 
                                     critChance += Math.floor(user.skills.strength / 2)
+
+                                    var attackedFor = user.equippedWeapon.damage
                                 
                                     if (Math.floor(Math.random() * 101) <= critChance) {
-                                        var newHealth = monster.health - (user.equippedWeapon.damage * 2.5)
+
+                                        attackedFor = user.equippedWeapon.damage * 2.5
+
+                                        var newHealth = monster.health - attackedFor
                                     
                                         criticalHit = '**Critical Hit!**'
                                     
@@ -274,6 +265,8 @@ bot.on('raw', async event => {
                                         { name: `${monster.type}'s Health`, value: `\`\`\`${newHealth}\`\`\``, inline: true },
                                         { name: `Your Health`, value: `\`\`\`${user.health}\`\`\``, inline: true },
                                         { name: `Your Weapon`, value: `\`\`\`${user.equippedWeapon.name}\`\`\``, inline: true },
+                                        { name: `Crit`, value: `\`\`\`${critChance}%\`\`\``, inline: true },
+                                        { name: `Attack`, value: `\`\`\`${user.equippedWeapon.damage}\`\`\``, inline: true },
                                         { name: `Player`, value: `${ruser}`, inline: true }
                                     )
                                     
@@ -292,9 +285,10 @@ bot.on('raw', async event => {
                                         var rewardMessage = ''
                                         var amount = 0
 
-                                        var xp = user.experience
+                                        xp = Math.floor(Math.random() * 101)
+                                        
+                                        user.experience += xp
 
-                                        xp += Math.floor(Math.random() * 101)
 
                                         if (Math.floor(xp / 100) !== user.level) {
                                             user.level = Math.floor(xp / 100)
@@ -323,27 +317,25 @@ bot.on('raw', async event => {
 
                                         if (rewardMessage !== `\`\`\``) {
                                             console.log(user.items)
-                                            await User.findOneAndUpdate({ userId: ruser.id }, { items: user.items, level: user.level, experience: xp, points: user.points })
+                                            await User.findOneAndUpdate({ userId: ruser.id }, { items: user.items, level: user.level, experience: user.experience, points: user.points })
                                             rewardMessage += `${xp} experience\`\`\``
                                         } else {
                                             rewardMessage = `\`\`\`${xp} experience\`\`\``
                                         }
                                     
                                         await embed.addFields(
-                                            { name: `Updates`, value: `${criticalHit} **The ${monster.type} is defeated!**`, inline: true },
+                                            { name: `Updates`, value: `> ${criticalHit} **The ${monster.type} is defeated!**`, inline: true },
                                             { name: `What you recieved`, value: `${rewardMessage}`, inline: false }
                                         )
                                         
                                         await message.edit(embed)
                                         await Monster.remove({ target: ruser.id })
-                                        try { await message.delete({ timeout: 5000 }) } catch (e) {}
+                                        try { await message.delete({ timeout: 10000 }) } catch (e) {}
                                         
                                     } else {
-
-                                        await message.react('🚫')
                                     
                                         await embed.addFields(
-                                            { name: `Updates`, value: `${criticalHit} You dealt massive damage!`, inline: true }
+                                            { name: `Updates`, value: `> ${criticalHit} You attack for ${attackedFor} damage!`, inline: true }
                                         )
                                         
                                         await message.edit(embed)
@@ -351,63 +343,44 @@ bot.on('raw', async event => {
                                         
                                     }
 
-                                    setTimeout(async function() {
-
-                                        var userHealth = user.health - monster.attack
-
-                                        console.log(userHealth)
-
-                                        if (userHealth === 0 || userHealth < 0 ) {
-
-                                            await User.findOneAndUpdate({ userId: ruser.id }, { health: 0 })
-                                            await Monster.remove({ target: ruser.id })
-
-                                            embed = new Discord.MessageEmbed()
-                                                .setColor(botconfig.color)
-                                                .setTitle('Oh No!')
-                                                .setDescription(`The ${monster.type} penetrates your strongest defenses! You are dead!\n
-                                                \`\`\`You awake back in the guild of ${message.guild.name} with some penalties:\n \`\`\``)
-                                            
-                                            await message.delete()
-
-                                            var msg = await message.channel.send(embed)
-
-                                        } else {
-
-                                            await User.findOneAndUpdate({ userId: ruser.id }, { health: userHealth })
-
-                                            embed.fields.forEach(field => {
-                                                if(field.name === 'Your Health') {
-                                                    field.value = `\`\`\`${userHealth}\`\`\``
-                                                } else if (field.name === 'Updates') {
-                                                    field.value += `\nThe ${monster.type} hits you back for ${monster.attack} damage!`
-                                                }
-                                            })
-
-                                            message.reactions.cache.forEach(reaction => {
-                                                if (reaction._emoji.name === '🚫') {
-                                                    reaction.users.cache.forEach(user => {
-                                                        if (user.id === bot.user.id) {
-                                                            reaction.remove(bot.user.id)
-                                                        }
-                                                    })
-                                                }
-                                            })
-
-                                            await message.edit(embed)
-
-                                            for (const reaction of userReactions.values()) {
-                                                await reaction.users.remove(ruser.id);
-                                            }
+                                    var userHealth = user.health - monster.attack
+                                    console.log(userHealth)
+                                    if (userHealth === 0 || userHealth < 0 ) {
+                                        var newXP = user.experience
+                                        var xpLoss= 0
+                                        if (user.experience > 100) {
+                                            newXP = Math.floor(user.experience / 100) * 100 + 1
+                                            xpLoss = user.experience - newXP
                                         }
-
-                                    }, 3000)
+                                        await User.findOneAndUpdate({ userId: ruser.id }, { health: 100, experience: newXP })
+                                        await Monster.remove({ target: ruser.id })
+                                        embed = new Discord.MessageEmbed()
+                                            .setColor(botconfig.color)
+                                            .setTitle('Oh No!')
+                                            .setDescription(`The ${monster.type} penetrates your strongest defenses! You are dead!\n
+                                            \`\`\`You awake back in the guild of ${message.guild.name} with some penalties:\n - ${xpLoss} experience\`\`\``)
+                                        
+                                        await message.delete()
+                                        var msg = await message.channel.send(embed)
+                                    } else {
+                                        await User.findOneAndUpdate({ userId: ruser.id }, { health: userHealth })
+                                        embed.fields.forEach(field => {
+                                            if(field.name === 'Your Health') {
+                                                field.value = `\`\`\`${userHealth}\`\`\``
+                                            } else if (field.name === 'Updates') {
+                                                field.value += `\n> The ${monster.type} hits you back for ${monster.attack} damage!`
+                                            }
+                                        })
+                                        await message.edit(embed)
+                                        for (const reaction of userReactions.values()) {
+                                            await reaction.users.remove(ruser.id);
+                                        }
+                                    }
                                 
                                 } else {
                                     ogembed.setTitle('New Encounter')
                                     ogembed.setDescription('You do not have a weapon equipped!')
                                     await message.edit(ogembed)
-                                    try { await message.edit({ timeout: 5000 }) } catch (e) {}
                                 }
                             } else {
                                 ogembed.setTitle('New Encounter')
@@ -427,12 +400,6 @@ bot.on('raw', async event => {
                         await message.channel.send(embed)
                     }
                 }
-
-            } else {
-                for (const reaction of userReactions.values()) {
-                    await reaction.users.remove(ruser.id);
-                }
-            }
 
         } else {
                 ogembed.setDescription('You are not the player who this message was made for!')

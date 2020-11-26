@@ -26,7 +26,18 @@ module.exports.run = async (bot, message, args, color) => {
         \n\`Forest (${botconfig.prefix}info forest)\`, \`City (${botconfig.prefix}info city)\``)
         await message.channel.send(embed)
     } else if (user.occupied && user.travel) {
-        embed.setDescription(`You are currently traveling to \`${user.travel.travelingTo}\`. This will take another ${Number.parseFloat((user.travel.arrive - Date.now()) / 60000).toFixed(2)} minutes`)
+
+        var og = Number.parseFloat((user.travel.arrive - Date.now()) / 60000).toFixed(2)
+        var type
+
+        if (og < 1) {
+            og *= 60
+            type = 'seconds'
+        } else {
+            type = 'minutes'
+        }
+
+        embed.setDescription(`You are currently traveling to \`${user.travel.travelingTo}\`. This will take another ${Math.floor(og)} ${type}`)
         await message.channel.send(embed)
     } else {
         if (!user.occupied) {
@@ -37,7 +48,7 @@ module.exports.run = async (bot, message, args, color) => {
                 started: Date.now(), 
                 arrive: Date.now() + time_req} 
             })
-            embed.setDescription(`You are now travelling to \`${args[0]}\`, which will take \`${Number.parseFloat(time_req / 60000).toFixed(2)}\`. Be ready to respond to pings, there are dangerous creatures around these parts!`)
+            embed.setDescription(`You are now travelling to \`${args[0]}\`, which will take ${Math.floor(Number.parseFloat(time_req / 60000).toFixed(2))} minutes. Be ready to respond to pings, there are dangerous creatures around these parts!`)
             await message.channel.send(embed)
             embed.setDescription(`You have arrived at \`${args[0]}\`!`)
         }

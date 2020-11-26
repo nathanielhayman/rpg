@@ -22,9 +22,8 @@ module.exports.run = async (bot, message, args, color) => {
                 { name: 'Professions', value: `\`\`\`ini\n• Lumberjacks: 4 [Level 1]\n• Farmers: 20 [Level 5]\n• Bakers: 5 [Level 2]\n• Craftsmen: 2 [Level 3]\n• Blacksmiths: 5 [Level 2]\n• Miners: 10 [Level 4]\`\`\``, inline: false },
                 { name: 'Tax', value: `\`\`\`$2 / skilled laborer / day\`\`\``, inline: true },
                 { name: 'Coffer Amount', value: `\`\`\`ini\n$1,204\`\`\``, inline: true },
-                { name: '\u200B', value: '**[Documentation](http://example.com) | [Leaderboard](http://example.com) | [Player Dashboard](http://example.com)**', inline: false }
             )
-            .setFooter(`RPeG ${botconfig.version}`, bot.user.avatarURL())
+            .setFooter(`${botconfig.version}`, bot.user.avatarURL())
 
     return message.channel.send(embed)
 }

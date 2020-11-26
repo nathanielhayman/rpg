@@ -23,22 +23,29 @@ module.exports.run = async (bot, message, args, color) => {
 
         const user = await User.findOne({userId: message.author.id})
 
-        if (args[0].toLowerCase() === 'strength') {
-            user.skills.strength += 1
-            await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
+        if (user.points) {
 
-            embed.setDescription('Leveled up your strength skill!')
-        } else if (args[0].toLowerCase() === 'agility') {
-            user.skills.agility += 1
-            await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
+            if (args[0].toLowerCase() === 'strength') {
+                user.skills.strength += 1
+                await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
+    
+                embed.setDescription('Leveled up your strength skill!')
+            } else if (args[0].toLowerCase() === 'agility') {
+                user.skills.agility += 1
+                await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
+    
+                embed.setDescription('Leveled up your agility skill!')
+            } else if (args[0].toLowerCase() === 'speech') {
+                user.skills.speech += 1
+                await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
+    
+                embed.setDescription('Leveled up your speech skill!')
+            }
 
-            embed.setDescription('Leveled up your agility skill!')
-        } else if (args[0].toLowerCase() === 'speech') {
-            user.skills.speech += 1
-            await User.findOneAndUpdate({ userId: message.author.id }, { skills: user.skills, points: user.points - 1 })
-
-            embed.setDescription('Leveled up your speech skill!')
+        } else {
+            embed.setDescription(`You don't have enough skill points you greedy bastard!`)
         }
+
     }
 
     await message.channel.send(embed)
